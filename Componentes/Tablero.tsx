@@ -6,6 +6,7 @@ import RenderItem from "../Page/RenderItem";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
+
 export interface PeticionServicio {
     title: string;
     done: boolean;
@@ -13,6 +14,7 @@ export interface PeticionServicio {
 }
 
 export default function PeticionServicioP() {
+
     const [text, setText] = useState('');
     const [tasks, setTasks] = useState<PeticionServicio[]>([]);
     const [date, setDate] = useState(new Date());
@@ -125,7 +127,38 @@ export default function PeticionServicioP() {
             </Text>
             
             <View style={Estilos.inputcontainer}>
-                <TextInput 
+                
+                <View style={Estilos.fila}>
+                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
+                        <Text style={Estilos.textB}>Fontaneria</Text>
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
+                        <Text style={Estilos.textB}>Electricidad</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={Estilos.fila}>
+                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
+                        <Text style={Estilos.textB}>Carpinteria</Text>
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
+                        <Text style={Estilos.textB}>Albañileria</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={Estilos.fila}>
+                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
+                        <Text style={Estilos.textB}>Mecanica</Text>
+                    </TouchableOpacity>
+    
+                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
+                        <Text style={Estilos.textB}>General</Text>
+                    </TouchableOpacity>
+                </View>
+
+            {/* <TextInput 
                     placeholder="Escribe la descripción del trabajo (Ej. 'Arreglar fuga en baño')"
                     style={Estilos.textinput}
                     value={text}
@@ -138,7 +171,8 @@ export default function PeticionServicioP() {
                 
                 <TouchableOpacity style={Estilos.boton} onPress={addTask}> 
                     <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Solicitar</Text> 
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+
             </View>
             
             <Text style={Estilos.fecha}>

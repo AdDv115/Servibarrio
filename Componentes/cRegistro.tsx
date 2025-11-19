@@ -36,6 +36,9 @@ export default function cRegistro() {
                     style={formularios.textinput} 
                     value={Correo} 
                     onChangeText={setCorreo}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+
                 />
 
                 <Text style={formularios.text}>Telefono</Text>

@@ -18,7 +18,7 @@ const EstilosUnicos = StyleSheet.create({
     },
 
     inputcontainer: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         marginBottom: 10,
         backgroundColor: '#FFFFFF',
@@ -32,6 +32,13 @@ const EstilosUnicos = StyleSheet.create({
         elevation: 5,
     },
 
+    fila: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap:40,
+        padding:15,
+    },
+
     textinput: {
         flex: 1,
         height: 50,
@@ -39,19 +46,15 @@ const EstilosUnicos = StyleSheet.create({
         fontSize: 15,
         color: '#333333',
         backgroundColor: 'transparent',
-        borderWidth: 0,
-        borderRadius: 0,
     },
 
     boton: {
         height: 50,
-        paddingHorizontal: 15,
+        width: 140,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#1ABC9C',
         borderRadius: 10,
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
         marginLeft: 0,
     },
     

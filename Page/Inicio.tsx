@@ -36,7 +36,7 @@ export const Inicio = () => {
             }
 
             const mensaje = await response.text();
-            Alert.alert("Inicio Exitoso", mensaje || "Sesión iniciada correctamente.");
+            Alert.alert("Sesión iniciada correctamente");
             
             setCorreo('');
             setContra('');

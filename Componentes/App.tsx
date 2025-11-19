@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import React from "react";
 import Inicio from './cLogin';
 import Registro from "./cRegistro";
@@ -5,6 +6,9 @@ import Tablero from "./Tablero";
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from "@react-navigation/stack";
 import { StackNavigationProp } from '@react-navigation/stack';
+import { enableScreens } from "react-native-screens";
+
+enableScreens()
 
 export type RootList={
   Inicio:undefined
