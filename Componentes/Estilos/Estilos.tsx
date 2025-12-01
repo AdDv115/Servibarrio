@@ -66,14 +66,8 @@ const EstilosUnicos = StyleSheet.create({
 
     calendarioBoton: {
         backgroundColor: 'transparent',
-        paddingHorizontal: 15,
-        height: 50,
         justifyContent: 'center',
         alignItems: 'center',
-        borderLeftWidth: 1,
-        borderLeftColor: '#E0E0E0',
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
     },
 
     fecha: {
@@ -86,6 +80,8 @@ const EstilosUnicos = StyleSheet.create({
         marginBottom: 15,
         fontWeight: 'bold',
         textAlign: 'center',
+        flexDirection:'row',
+        gap:50
     },
 
     listaContainer: {

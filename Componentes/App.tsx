@@ -24,13 +24,7 @@ export default function App(){
       <Ruta.Navigator
       initialRouteName="Inicio"
       screenOptions={{
-        headerStyle:{
-          backgroundColor:'#1ABC9C',
-        },
-        headerTintColor:'white',
-        headerTitleStyle:{
-          fontWeight:'bold',
-        },
+        headerShown:false
       }}
       >
       <Ruta.Screen

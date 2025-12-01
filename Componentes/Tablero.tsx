@@ -1,218 +1,246 @@
-
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Platform, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Platform,
+  Alert,
+  AppState,
+  AppStateStatus,
+} from "react-native";
 import Estilos from "../Componentes/Estilos/Estilos";
 import RenderItem from "../Page/RenderItem";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
+import PushNotification from "react-native-push-notification";
 
 export interface PeticionServicio {
-    title: string;
-    done: boolean;
-    date: Date;
+  id: any;
+  title: string;
+  done: boolean;
+  date: Date;
 }
 
 export default function PeticionServicioP() {
+  const [text, setText] = useState("");
+  const [tasks, setTasks] = useState<PeticionServicio[]>([]);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-    const [text, setText] = useState('');
-    const [tasks, setTasks] = useState<PeticionServicio[]>([]);
-    const [date, setDate] = useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [showTimePicker, setShowTimePicker] = useState(false);
-
-    const storeData = async (value: PeticionServicio[]) => {
-        try {
-            await AsyncStorage.setItem('PS', JSON.stringify(value));
-        } catch (e) {
-            console.error("Error al guardar datos:", e);
-        }
+  const storeData = async (value: PeticionServicio[]) => {
+    try {
+      await AsyncStorage.setItem("PS", JSON.stringify(value));
+    } catch (e) {
+      console.error("Error:", e);
     }
+  };
 
-    const getData = async () => {
-        try{
-            const value = await AsyncStorage.getItem('PS');
-            if (value != null){
-                const parsedTask = JSON.parse(value);
-                const tasklocal: PeticionServicio[] = parsedTask.map((task: any) => ({
-                    title: task.title,
-                    done: task.done,
-                    date: new Date(task.date)
-                }));
-                setTasks(tasklocal);
-            }
-        } catch (e){
-            console.error("Error al cargar datos:", e);
-        }
-    }
-
-    useEffect(() => {
-        getData();
-    }, []);
-
-    const onDateChange = (event: any, selectedDate ?: Date) => {
-        if (Platform.OS !== 'ios') setShowDatePicker(false);
-        
-        if (event.type === 'set' && selectedDate){
-            setDate(selectedDate);
-            if (Platform.OS !== 'ios') setShowTimePicker(true);
-        }
-    }
-
-    const onTimeChange = (event: any, selectedTime ?: Date) => {
-        setShowTimePicker(false);
-        if (event.type === 'set' && selectedTime) {
-            const newDate = new Date(date);
-            newDate.setHours(selectedTime.getHours());
-            newDate.setMinutes(selectedTime.getMinutes());
-            setDate(newDate);
-        }
-    }
-    
-    const addTask = () => {
-        if (text.trim() === '') {
-            Alert.alert('Falta Información', 'Por favor, describe el servicio que necesitas.');
-            return;
-        }
-
-        const tmp = [...tasks];
-        const NP: PeticionServicio = {
-            title: text,
-            done: false,
-            date: date
-        };
-
-        tmp.push(NP);
-        setTasks(tmp);
-        storeData(tmp);
-        setText('');
-        setDate(new Date());
-    }
-
-    const markDone = (task: PeticionServicio) => {
-      const tmp = [...tasks];
-      const index = tmp.findIndex(el => el.title === task.title);
-      if (index !== -1) {
-          const todo = tmp[index];
-          todo.done = !todo.done;
-          setTasks(tmp);
-          storeData(tmp);
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem("PS");
+      if (value !== null) {
+        const Tlocals = JSON.parse(value);
+        const taskWithDates = Tlocals.map((task: any) => ({
+          ...task,
+          date: new Date(task.date),
+        }));
+        setTasks([...taskWithDates]);
       }
+    } catch (e) {
+      console.error("Error:", e);
     }
+  };
 
-    const deleteFuntion = (task: PeticionServicio) => {
-      const tmp = [...tasks];
-      const index = tmp.findIndex(el => el.title === task.title);
-      if (index !== -1) {
-          tmp.splice(index, 1);
-          setTasks(tmp);
-          storeData(tmp);
+  const checkAndUpdateOverdueTask = async () => {
+    try {
+      const value = await AsyncStorage.getItem("PS");
+      if (value !== null) {
+        const storedTask = JSON.parse(value);
+        const taskWithDates = storedTask.map((task: any) => ({
+          ...task,
+          date: new Date(task.date),
+        }));
+        setTasks(taskWithDates);
       }
+    } catch (e) {
+      console.log("error", e);
     }
-    
-    const formatDate = (date: Date) => {
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }); 
+  };
+
+  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+    if (nextAppState === "active") {
+      checkAndUpdateOverdueTask();
     }
+  };
 
-    return (
-        <View style={Estilos.container}>
-            <Text style={Estilos.title}>
-                Solicitar Servicio 🛠️
-            </Text>
-            
-            <View style={Estilos.inputcontainer}>
-                
-                <View style={Estilos.fila}>
-                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
-                        <Text style={Estilos.textB}>Fontaneria</Text>
-                    </TouchableOpacity>
-    
-                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
-                        <Text style={Estilos.textB}>Electricidad</Text>
-                    </TouchableOpacity>
-                </View>
+  useEffect(() => {
+    PushNotification.configure({
+      onNotification: function (notification: any) {
+        console.log("NOTIFICATION:", notification);
+        if (notification.data && notification.data.taskId) {
+          checkAndUpdateOverdueTask();
+        }
+      },
+      requestPermissions: Platform.OS === "ios",
+    });
 
-                <View style={Estilos.fila}>
-                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
-                        <Text style={Estilos.textB}>Carpinteria</Text>
-                    </TouchableOpacity>
-    
-                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
-                        <Text style={Estilos.textB}>Albañileria</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={Estilos.fila}>
-                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
-                        <Text style={Estilos.textB}>Mecanica</Text>
-                    </TouchableOpacity>
-    
-                    <TouchableOpacity style={Estilos.boton} /* onPress={e} */>
-                        <Text style={Estilos.textB}>General</Text>
-                    </TouchableOpacity>
-                </View>
-
-            {/* <TextInput 
-                    placeholder="Escribe la descripción del trabajo (Ej. 'Arreglar fuga en baño')"
-                    style={Estilos.textinput}
-                    value={text}
-                    onChangeText={(t: string) => setText(t)}
-                />
-
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} style={Estilos.calendarioBoton || Estilos.boton}> 
-                    <Text>🗓️</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={Estilos.boton} onPress={addTask}> 
-                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold' }}>Solicitar</Text> 
-                </TouchableOpacity> */}
-
-            </View>
-            
-            <Text style={Estilos.fecha}>
-                 Fecha/Hora Elegida: {formatDate(date)}
-            </Text>
-
-            {showDatePicker && (
-                <DateTimePicker
-                    value={date}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={onDateChange}
-                    minimumDate={new Date()}
-                />
-            )}
-            
-            {showTimePicker && (
-                <DateTimePicker
-                    value={date}
-                    mode="time"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={onTimeChange}
-                />
-            )}
-            
-            <View style={Estilos.listaContainer}>
-                <Text style={Estilos.sub}>Mis Solicitudes ({tasks.length})</Text>
-                
-                <FlatList 
-                    renderItem={({ item }) =>
-                        <RenderItem
-                            item={item}
-                            markDone={markDone}
-                            deleteFuntion={deleteFuntion}
-                        />}
-                    data={tasks}
-                    keyExtractor={(item, index) => `${item.title}-${index}`} 
-                    style={{ flexGrow: 1 }}
-                />
-            </View>
-        </View>
+    PushNotification.createChannel(
+      {
+        channelId: "task-reminders",
+        channelName: "Recordatorio de tareas",
+        channelDescription: "Notificaciones Programadas",
+        playSound: true,
+        importance: 4,
+        vibrate: true,
+      },
+      (created: boolean) =>
+        console.log(`Canal ${created ? "Creado" : "Ya existe"}`)
     );
+
+    getData();
+    checkAndUpdateOverdueTask();
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const scheduleNotification = (task: PeticionServicio) => {
+    const now = new Date();
+    const taskDate = task.date;
+
+    if (taskDate > now) {
+      const notificationId = Math.floor(Math.random() * 1000000);
+
+      PushNotification.localNotificationSchedule({
+        id: notificationId,
+        channelId: "task-reminders",
+        title: "Recordatorio",
+        message: `Es hora de: ${task.title}`,
+        date: taskDate,
+        data:{
+            taskId:task.id,
+            taskTitles:task.title,
+        },
+        allowWhileIdle:true,
+        repeatType:undefined
+
+      })
+      return notificationId
+    }
+  };
+
+  const cancelNotification = (notificationId:number) => {
+    PushNotification.cancelLocalNotification({id:notificationId.toString()})
+  }
+
+  const generateTaskId = () => {
+    return Date.now().toString()+Math.random().toString(36).substr(2,9)
+  }
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS !== "ios") setShowDatePicker(false);
+
+    if (event.type === "set" && selectedDate) {
+      setDate(selectedDate);
+  };
+
+  const onTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (event.type === "set" && selectedTime) {
+      const newDate = new Date(date);
+      newDate.setHours(selectedTime.getHours());
+      newDate.setMinutes(selectedTime.getMinutes());
+      setDate(newDate);
+    }
+  };
+
+  const addTask = () => {
+    if (text.trim() === "") {
+      Alert.alert(
+        "Falta Información",
+        "Por favor, describe el servicio que necesitas."
+      );
+      return;
+    }
+
+    const tmp = [...tasks];
+    const taskId = generateTaskId()
+    const NP: PeticionServicio = {
+        id: taskId,
+        title: text.trim(),
+        done: false,
+        date: selecteddate
+
+    };
+
+    tmp.push(NP);
+    setTasks(tmp);
+    storeData(tmp);
+    setText('');
+    setDate(new Date());
+    const notificationId = scheduleNotification(newTask)
+    if(notificationId){
+        newTask.notificationId = notificationId
+    }
+    tmp.push(NP)
+    setTasks(tmp)
+    storeData(tmp)
+    setText('')
+    setDate(new Date())
+
+    if(notificationId){
+        Alert.alert('Tarea Programada', 
+            `Tarea ${newTask.title} programada para el dia ${formatDate(selectedDate)}`)
+    }
+  }
+
+  const markDone = (task: PeticionServicio) => {
+    const tmp = [...tasks];
+    const index = tmp.findIndex((el) => el.title === task.title);
+    if (index !== -1) {
+      const todo = tmp[index];
+      todo.done = !todo.done;
+      setTasks(tmp);
+      storeData(tmp);
+    }
+  };
+
+  const deleteFuntion = (task: PeticionServicio) => {
+    const tmp = [...tasks];
+    const index = tmp.findIndex((el) => el.title === task.title);
+    if (index !== -1) {
+      tmp.splice(index, 1);
+      setTasks(tmp);
+      storeData(tmp);
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <View style={Estilos.container}>
+    </View>
+  );
+}
 }
