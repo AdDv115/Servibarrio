@@ -17,16 +17,17 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import PushNotification from "react-native-push-notification";
 
 export interface PeticionServicio {
-  id: any;
-  title: string;
-  done: boolean;
-  date: Date;
+    title:string,
+    done:boolean,
+    date:Date,
+    id:string,
+    notificationId?:number
 }
 
 export default function PeticionServicioP() {
   const [text, setText] = useState("");
   const [tasks, setTasks] = useState<PeticionServicio[]>([]);
-  const [date, setDate] = useState(new Date());
+  const [selecteddate, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -79,7 +80,7 @@ export default function PeticionServicioP() {
   useEffect(() => {
     PushNotification.configure({
       onNotification: function (notification: any) {
-        console.log("NOTIFICATION:", notification);
+        console.log('NOTIFICATION:', notification);
         if (notification.data && notification.data.taskId) {
           checkAndUpdateOverdueTask();
         }
