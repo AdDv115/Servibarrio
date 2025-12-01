@@ -157,12 +157,12 @@ export default function PeticionServicioP() {
       setDate(selectedDate);
   };
 
-  const onTimeChange = (event: any, selectedTime?: Date) => {
+  const onTimeChange = (event: any,time ?: Date) => {
     setShowTimePicker(false);
-    if (event.type === "set" && selectedTime) {
-      const newDate = new Date(date);
-      newDate.setHours(selectedTime.getHours());
-      newDate.setMinutes(selectedTime.getMinutes());
+    if (time) {
+      const newDate = new Date(selecteddate);
+      newDate.setHours(time.getHours());
+      newDate.setMinutes(time.getMinutes());
       setDate(newDate);
     }
   };
@@ -211,14 +211,45 @@ export default function PeticionServicioP() {
     const tmp = [...tasks];
     const index = tmp.findIndex((el) => el.title === task.title);
     if (index !== -1) {
-      const todo = tmp[index];
-      todo.done = !todo.done;
+      tmp[index].done =! tmp[index].done
+      if(tmp[index].done && tmp[index].notificationId){
+        cancelNotification(tmp[index].notificationId)
+      
+    }else if(!tmp[index].done){
+        const notificationId = scheduleNotification(tmp[index])
+        if(notificationId){
+            tmp[index].notificationId = notificationId
+        }
+    }
       setTasks(tmp);
       storeData(tmp);
     }
   };
 
   const deleteFuntion = (task: PeticionServicio) => {
+    Alert.alert(
+        'Confirmas la eliminacion',
+        '¿Seguro que desea eliminar?',
+        [
+            {text:'Cancelar', style:'cancel'},
+            {
+                text:'Eliminar',
+                style:'destructive',
+                onPress:() => {
+                    const tmp = [...tasks]
+                    const index = tmp.findIndex(el => el.id === el.id)
+                    if(index !== -1){
+                        if(task.notificationId){
+                            cancelNotification(task.notificationId)
+                        }
+                        tmp.splice(index,1)
+                        setTasks(tmp)
+                        storeData(tmp)
+                    }
+                }
+            }
+        ]
+    )
     const tmp = [...tasks];
     const index = tmp.findIndex((el) => el.title === task.title);
     if (index !== -1) {
