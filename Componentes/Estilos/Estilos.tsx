@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-const EstilosUnicos = StyleSheet.create({
+const Estilos = StyleSheet.create({
 
     container: {
         flex: 1,
@@ -45,7 +45,6 @@ const EstilosUnicos = StyleSheet.create({
         paddingHorizontal: 15,
         fontSize: 15,
         color: '#333333',
-        backgroundColor: 'transparent',
     },
 
     boton: {
@@ -156,6 +155,30 @@ const EstilosUnicos = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 5,
     },
+    modal: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.4)",
+        flexDirection: "row",
+    },
+    mc: {
+        width: "90%",
+        backgroundColor: "#FFFFFF",
+        borderRadius: 10,
+        padding: 30,
+        flexDirection: "column"
+    },
+    inputmodal: {
+        borderWidth: 1,
+        borderRadius: 15,
+        margin:10,    
+    },
+    botonesmo: {
+        gap:20,
+        justifyContent:"center",
+        flexDirection: "row"
+    }
 });
 
-export default EstilosUnicos;
+export default Estilos;

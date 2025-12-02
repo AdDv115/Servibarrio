@@ -63,7 +63,7 @@ export default function cRegistro() {
                     onValueChange={setMiembro}
                 >
                     <Picker.Item label="Usuario" value="Usuario" />
-                    <Picker.Item label="Miembro" value="Miembro" />
+                    <Picker.Item label="Tecnico" value="Tecnico" />
                 </Picker> 
 
                 <TouchableOpacity style={formularios.boton} onPress={Registrar}>

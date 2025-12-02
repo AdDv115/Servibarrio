@@ -26,6 +26,8 @@ export default function cLogin() {
                 <TextInput
                     style={formularios.textinput}
                     placeholder="Correo"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                     value={Correo}
                     onChangeText={setCorreo}
                 />

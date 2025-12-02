@@ -46,7 +46,7 @@ export const Registro = () => {
             setCorreo('');
             setTelefono('');
             setContra('');
-            setMiembro('Usuario');
+            setMiembro('');
             
             navigation.replace('Tablero'); 
 

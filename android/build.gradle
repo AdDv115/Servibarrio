@@ -12,7 +12,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.4.2")  // Especifica una versión de gradle
+        classpath("com.android.tools.build:gradle:7.4.2")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
     }
@@ -20,9 +20,20 @@ buildscript {
 
 apply plugin: "com.facebook.react.rootproject"
 
-
 allprojects {
     configurations.all {
         exclude group: "com.android.support", module: "support-compat"
+    }
+}
+
+subprojects { subproject ->
+    subproject.configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.13.1'
+            force 'androidx.core:core-ktx:1.13.1'
+            exclude group:'com.android.support', module:'support-compat'
+            exclude group:'com.android.support', module:'support-v4'
+            exclude group:'com.android.support', module:'support-annotations'
+        }
     }
 }
