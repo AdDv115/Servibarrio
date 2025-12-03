@@ -41,7 +41,8 @@ export const Inicio = () => {
             setCorreo('');
             setContra('');
 
-            navigation.replace('Tablero');
+            const destino = miembro === 'Tecnico' ? 'SolicitudesTecnico' : 'Tablero';
+            navigation.replace(destino);
 
         } catch (error) {
             console.error("Detalles del Error en el Login:", error); 

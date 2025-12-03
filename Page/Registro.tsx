@@ -48,7 +48,8 @@ export const Registro = () => {
             setContra('');
             setMiembro('');
             
-            navigation.replace('Tablero'); 
+            const destino = miembro === 'Tecnico' ? 'SolicitudesTecnico' : 'Tablero';
+            navigation.replace(destino); 
 
         } catch (error) {
             console.error("Detalles del Error en el Registro:", error); 

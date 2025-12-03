@@ -41,6 +41,16 @@ export default function cLogin() {
                     secureTextEntry
                 />
 
+                <Text style={formularios.text}>Rol</Text>
+                <Picker
+                    style={formularios.picker}
+                    selectedValue={miembro}
+                    onValueChange={setMiembro}
+                >
+                    <Picker.Item label="Usuario" value="Usuario" />
+                    <Picker.Item label="Tecnico" value="Tecnico" />
+                </Picker>
+
                 <TouchableOpacity style={formularios.boton} onPress={handleLogin}>
                     <Text style={formularios.textB}>Entrar</Text>
                 </TouchableOpacity>
