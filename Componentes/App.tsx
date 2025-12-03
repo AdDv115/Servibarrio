@@ -51,7 +51,11 @@ export default function App(){
       />
       </Ruta.Navigator>
     </NavigationContainer>
+
+    
   );
+
+  
 }
 
 export type StackNavigation = StackNavigationProp<RootList>;

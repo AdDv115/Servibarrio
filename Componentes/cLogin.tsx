@@ -1,14 +1,12 @@
 import React from "react";
 import { View, Text, TextInput, TouchableOpacity, ImageBackground } from "react-native";
 import formularios from "./Estilos/Formularios";
-import { Picker } from "@react-native-picker/picker";
 import { Inicio } from "../Page/Inicio"; 
 
 export default function cLogin() {
     const {
         Correo, setCorreo,
         Contra, setContra,
-        miembro, setMiembro,
         handleLogin,
         navigation
     } = Inicio();
@@ -40,16 +38,6 @@ export default function cLogin() {
                     onChangeText={setContra}
                     secureTextEntry
                 />
-
-                <Text style={formularios.text}>Rol</Text>
-                <Picker
-                    style={formularios.picker}
-                    selectedValue={miembro}
-                    onValueChange={setMiembro}
-                >
-                    <Picker.Item label="Usuario" value="Usuario" />
-                    <Picker.Item label="Tecnico" value="Tecnico" />
-                </Picker>
 
                 <TouchableOpacity style={formularios.boton} onPress={handleLogin}>
                     <Text style={formularios.textB}>Entrar</Text>

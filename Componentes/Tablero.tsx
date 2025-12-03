@@ -16,6 +16,8 @@ import RenderItem from "../Page/RenderItem";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PushNotification from "react-native-push-notification";
+import formularios from "./Estilos/Formularios";
+import { StackNavigation } from "./App";
 
 export interface PeticionServicio {
   id: string;
@@ -25,7 +27,11 @@ export interface PeticionServicio {
   notificationId?: string;
 }
 
-export default function PeticionServicioP() {
+type Props = {
+  navigation: StackNavigation;
+};
+
+export default function PeticionServicioP({ navigation }: Props) {
   const [text, setText] = useState("");
   const [tasks, setTasks] = useState<PeticionServicio[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -33,6 +39,7 @@ export default function PeticionServicioP() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  
 
   const storeData = async (value: PeticionServicio[]) => {
     try {
@@ -154,7 +161,7 @@ export default function PeticionServicioP() {
 
     const sub = AppState.addEventListener("change", handleAppStateChange);
     return () => sub.remove();
-  }, []);
+  });
 
   const addTask = () => {
     if (text.trim() === "") {
@@ -246,7 +253,12 @@ export default function PeticionServicioP() {
 
   return (
     <View style={Estilos.container}>
-      <Text style={Estilos.title}>Solicitar Servicio 🛠️</Text>
+
+    <TouchableOpacity onPress={() => navigation.navigate('Inicio')}>
+        <Text style={formularios.text}>←</Text>
+    </TouchableOpacity>
+
+      <Text style={Estilos.title}>Solicitar Servicio</Text>
 
       <View style={Estilos.inputcontainer}>
         <View style={Estilos.fila}>
@@ -378,7 +390,7 @@ export default function PeticionServicioP() {
           )}
           data={tasks}
           keyExtractor={(item, index) => `${item.title}-${index}`}
-          style={{ flexGrow: 1 }}
+      
         />
       </View>
     </View>

@@ -7,7 +7,7 @@ export const Inicio = () => {
     
     const [Correo, setCorreo] = useState('');
     const [Contra, setContra] = useState('');
-    const [miembro, setMiembro] = useState('Usuario');
+    const [miembro, setMiembro] = useState('');
 
     const navigation = useNavigation<StackNavigation>();
 
@@ -35,8 +35,8 @@ export const Inicio = () => {
                 throw new Error(errorText || `Error de autenticación: ${response.status}`);
             }
 
-            const mensaje = await response.text();
-            Alert.alert("Sesión iniciada correctamente");
+            /* const mensaje = await response.text();
+            Alert.alert("Sesión iniciada correctamente"); */
             
             setCorreo('');
             setContra('');
