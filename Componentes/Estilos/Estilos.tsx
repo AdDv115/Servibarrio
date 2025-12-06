@@ -13,6 +13,7 @@ const Estilos = StyleSheet.create({
         fontSize: 28,
         fontWeight: '700',
         color: '#2C3E50',
+        marginTop:70,
         marginBottom: 25,
         textAlign: 'center',
     },
@@ -178,7 +179,79 @@ const Estilos = StyleSheet.create({
         gap:20,
         justifyContent:"center",
         flexDirection: "row"
-    }
+    },
+    centered: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    rowBetween: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    rowCenter: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    flex1: {
+        flex: 1,
+    },
+    avatar: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#ECF0F1",
+    },
+    avatarFallback: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: "#3498DB",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    avatarInitial: {
+        color: "#FFFFFF",
+        fontWeight: "bold",
+    },
+    menuContainer: {
+        position: "absolute",
+        top: 50,
+        left: 10,
+        backgroundColor: "#FFFFFF",
+        padding: 12,
+        borderRadius: 8,
+        elevation: 4,
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+    },
+    profileImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        alignSelf: "center",
+        marginVertical: 12,
+    },
+    profilePlaceholder: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        alignSelf: "center",
+        marginVertical: 12,
+        backgroundColor: "#ECF0F1",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    profilePlaceholderText: {
+        color: "#2C3E50",
+    },
+    userLabel: {
+        marginLeft: 8,
+    },
+    perfilContainer: {
+        paddingTop: 60,
+    },
 });
 
 export default Estilos;

@@ -6,13 +6,17 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  StyleSheet,
+  Image,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import Estilos from "./Estilos/Estilos";
+import EstilosSolicitudes from "./Estilos/Tecnico";
 import {
   SolicitudTecnico,
   useSolicitudesTecnico,
 } from "../Page/SolicitudesTecnico";
+import { StackNavigation } from "./App";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const formatDate = (date: Date | string) => {
   const d = typeof date === "string" ? new Date(date) : date;
@@ -31,28 +35,37 @@ const SolicitudItem = ({
   onAccept,
 }: {
   item: SolicitudTecnico;
-  onAccept: (id: string) => void;
+  onAccept: (id: string) => Promise<void> | void;
 }) => {
   const statusStyle = item.accepted ? Estilos.statusDone : Estilos.statusPending;
-  const statusLabel = item.accepted ? "Aceptada" : "Pendiente";
+  const statusLabel = item.estado
+    ? item.estado.charAt(0).toUpperCase() + item.estado.slice(1)
+    : item.accepted
+    ? "Aceptada"
+    : "Pendiente";
 
   return (
-    <View style={styles.card}>
-      <View style={{ flex: 1 }}>
+    <View style={EstilosSolicitudes.card}>
+      <View style={Estilos.flex1}>
         <Text style={Estilos.text}>{item.title}</Text>
         <Text style={Estilos.dateText}>{formatDate(item.date)}</Text>
         <Text style={statusStyle}>{statusLabel}</Text>
+        {item.tecnicoCorreo ? (
+          <Text style={Estilos.dateText}>Tecnico: {item.tecnicoCorreo}</Text>
+        ) : null}
       </View>
 
       <TouchableOpacity
         style={[
-          styles.actionButton,
-          item.accepted ? styles.buttonDisabled : styles.buttonPrimary,
+          EstilosSolicitudes.actionButton,
+          item.accepted
+            ? EstilosSolicitudes.buttonDisabled
+            : EstilosSolicitudes.buttonPrimary,
         ]}
         disabled={item.accepted}
         onPress={() => onAccept(item.id)}
       >
-        <Text style={styles.actionText}>
+        <Text style={EstilosSolicitudes.actionText}>
           {item.accepted ? "Tomada" : "Aceptar"}
         </Text>
       </TouchableOpacity>
@@ -61,9 +74,71 @@ const SolicitudItem = ({
 };
 
 export default function SolicitudesTecnico() {
+  const navigation = useNavigation<StackNavigation>();
   const { solicitudes, loading, aceptarSolicitud, recargarSolicitudes } =
     useSolicitudesTecnico();
   const [refreshing, setRefreshing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [usuario, setUsuario] = useState<{
+    id: string;
+    correo: string;
+    foto?: string;
+    esTecnico?: boolean;
+    esAdmin?: boolean;
+    usuario?: string;
+  } | null>(null);
+
+  const cargarSesionLocal = async () => {
+    try {
+      const raw = await AsyncStorage.getItem("SB_USER_SESSION");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      setUsuario({
+        id: parsed.id,
+        correo: parsed.correo,
+        foto: parsed.foto,
+        esTecnico: parsed.esTecnico,
+        esAdmin: parsed.esAdmin,
+        usuario: parsed.usuario,
+      });
+    } catch {
+      setUsuario(null);
+    }
+  };
+
+  React.useEffect(() => {
+    cargarSesionLocal();
+  }, []);
+
+  const handleBack = () => {
+    navigation.replace("Inicio");
+  };
+
+  const renderAvatar = () => {
+    const uri = usuario?.foto;
+    if (uri) {
+      return (
+        <Image
+          source={{ uri }}
+          style={Estilos.avatar}
+        />
+      );
+    }
+    const inicial =
+      usuario?.usuario?.[0]?.toUpperCase() ||
+      usuario?.correo?.[0]?.toUpperCase() ||
+      "U";
+    return (
+      <View style={Estilos.avatarFallback}>
+        <Text style={Estilos.avatarInitial}>{inicial}</Text>
+      </View>
+    );
+  };
+
+  const cerrarSesion = async () => {
+    await AsyncStorage.removeItem("SB_USER_SESSION");
+    navigation.replace("Inicio");
+  };
 
   const pendientes = useMemo(() => {
     return [...solicitudes].sort(
@@ -79,6 +154,31 @@ export default function SolicitudesTecnico() {
 
   return (
     <View style={Estilos.container}>
+      <View style={Estilos.rowBetween}>
+        <TouchableOpacity onPress={() => setShowMenu((v) => !v)}>{renderAvatar()}</TouchableOpacity>
+        <TouchableOpacity onPress={handleBack}>
+          <Text style={Estilos.sub}>{"<- Volver"}</Text>
+        </TouchableOpacity>
+      </View>
+      {showMenu ? (
+        <View style={Estilos.menuContainer}>
+          <TouchableOpacity onPress={() => { setShowMenu(false); navigation.navigate("Perfil"); }}>
+            <Text style={Estilos.sub}>Perfil</Text>
+          </TouchableOpacity>
+          {usuario?.esAdmin ? (
+            <TouchableOpacity onPress={() => { setShowMenu(false); navigation.navigate("Admin"); }}>
+              <Text style={Estilos.sub}>Admin</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={() => { setShowMenu(false); navigation.navigate("Tablero"); }}>
+            <Text style={Estilos.sub}>Tablero</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setShowMenu(false); cerrarSesion(); }}>
+            <Text style={Estilos.sub}>Cerrar sesion</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
       <Text style={Estilos.title}>Solicitudes para tecnico</Text>
 
       {loading ? (
@@ -94,7 +194,7 @@ export default function SolicitudesTecnico() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           ListEmptyComponent={
-            <View style={styles.emptyState}>
+            <View style={EstilosSolicitudes.emptyState}>
               <Text style={Estilos.sub}>Sin solicitudes pendientes</Text>
               <Text style={Estilos.dateText}>
                 Cuando los usuarios creen solicitudes, apareceran aqui.
@@ -102,54 +202,12 @@ export default function SolicitudesTecnico() {
             </View>
           }
           contentContainerStyle={
-            pendientes.length === 0 ? styles.emptyContainer : undefined
+            pendientes.length === 0
+              ? EstilosSolicitudes.emptyContainer
+              : undefined
           }
         />
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    borderLeftWidth: 6,
-    borderLeftColor: "#1ABC9C",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 2,
-    gap: 10,
-  },
-  actionButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: "center",
-  },
-  buttonPrimary: {
-    backgroundColor: "#1ABC9C",
-  },
-  buttonDisabled: {
-    backgroundColor: "#BDC3C7",
-  },
-  actionText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-  },
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-});

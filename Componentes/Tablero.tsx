@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,390 +7,478 @@ import {
   FlatList,
   Platform,
   Alert,
-  AppState,
-  AppStateStatus,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import Estilos from "../Componentes/Estilos/Estilos";
+import estilos from "../Componentes/Estilos/Estilos";
 import RenderItem from "../Page/RenderItem";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import PushNotification from "react-native-push-notification";
 import formularios from "./Estilos/Formularios";
-import { StackNavigation } from "./App";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Image } from "react-native";
 
-export interface PeticionServicio {
+type Rol = "usuario" | "tecnico" | "admin";
+
+interface PeticionServicio {
   id: string;
   title: string;
   done: boolean;
-  date: Date;
+  date?: Date;
   notificationId?: string;
+  rolAsignado?: Rol;
+  usuarioId?: string;
+  descripcion?: string;
+  estado?: string;
+  tecnicoId?: string;
+  tecnicoCorreo?: string;
 }
 
-type Props = {
-  navigation: StackNavigation;
-};
+interface UserSession {
+  id: string;
+  correo: string;
+  rol: Rol;
+  esTecnico: boolean;
+  esMiembro: boolean;
+  foto?: string;
+  usuario?: string;
+  esAdmin?: boolean;
+}
 
-export default function PeticionServicioP({ navigation }: Props) {
-  const [text, setText] = useState("");
-  const [tasks, setTasks] = useState<PeticionServicio[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  
+const STORAGE_KEY = "SB_USER_SESSION";
+const BASE_URL = "https://api-appless.vercel.app";
 
-  const storeData = async (value: PeticionServicio[]) => {
-    try {
-      await AsyncStorage.setItem("PS", JSON.stringify(value));
-    } catch {}
-  };
+export default function PeticionesServicioScreen({ navigation }: any) {
+  const [descripcion, setDescripcion] = useState("");
+  const [solicitudes, setSolicitudes] = useState<PeticionServicio[]>([]);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
+  const [showDate, setShowDate] = useState(false);
+  const [showTime, setShowTime] = useState(false);
+  const [modalOn, setModalOn] = useState(false);
+  const [tipoServicio, setTipoServicio] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [usuario, setUsuario] = useState<UserSession | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
 
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem("PS");
-      if (value !== null) {
-        const locals = JSON.parse(value);
-        const tasksWithDates = locals.map((task: any) => ({
-          ...task,
-          date: new Date(task.date),
-        }));
-        setTasks(tasksWithDates);
-      }
-    } catch {}
-  };
-
-  const checkAndUpdateOverdueTask = async () => {
-    try {
-      const value = await AsyncStorage.getItem("PS");
-      if (value !== null) {
-        const stored = JSON.parse(value);
-        const tasksWithDates = stored.map((task: any) => ({
-          ...task,
-          date: new Date(task.date),
-        }));
-        setTasks(tasksWithDates);
-      }
-    } catch {}
-  };
-
-  const handleAppStateChange = (next: AppStateStatus) => {
-    if (next === "active") checkAndUpdateOverdueTask();
-  };
-
-  const scheduleNotification = (
-    task: PeticionServicio
-  ): string | undefined => {
-    const now = new Date();
-    if (task.date > now) {
-      const id = Math.floor(Math.random() * 1000000).toString();
-
-      PushNotification.localNotificationSchedule({
-        id,
-        channelId: "task-reminders",
-        title: "Recordatorio",
-        message: `Es hora de: ${task.title}`,
-        date: task.date,
-        allowWhileIdle: true,
-      });
-
-      return id;
-    }
-  };
-
-  const cancelNotification = (id: string) => {
-    PushNotification.cancelLocalNotification(id);
-  };
-
-  const generateTaskId = () => {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-  };
-
-  const onDateChange = (event: any, date?: Date) => {
-    if (Platform.OS !== "ios") setShowDatePicker(false);
-    if (event?.type === "set" && date) {
-      const newDate = new Date(date);
-      newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
-      setSelectedDate(newDate);
-      setShowTimePicker(true);
-    }
-  };
-
- const onTimeChange = (event: any, time?: Date) => {
-  if (Platform.OS !== "ios") setShowTimePicker(false);
-
-  if (event?.type === "set" && time) {
-    const now = new Date();
-    const newDate = new Date(selectedDate);
-
-    newDate.setHours(time.getHours());
-    newDate.setMinutes(time.getMinutes());
-
-    const isToday = selectedDate.toDateString() === now.toDateString();
-
-    if (isToday && newDate < now) {
-      Alert.alert("Hora inválida", "No puedes seleccionar una hora pasada.");
-      return; 
-    }
-    setSelectedDate(newDate);
+  function alertaError(err: unknown, titulo = "Error") {
+    const mensaje = err instanceof Error ? err.message : "Algo salio mal con la peticion.";
+    Alert.alert(titulo, mensaje);
   }
-};
 
+  async function cargarSesion(): Promise<UserSession | null> {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as UserSession;
+    } catch {
+      return null;
+    }
+  }
+
+  async function fetchSolicitudes(usuarioId: string) {
+    const resp = await fetch(`${BASE_URL}/tareas/${usuarioId}`);
+    const txt = await resp.text();
+    let data: any = [];
+    try {
+      data = txt ? JSON.parse(txt) : [];
+    } catch {
+      data = [];
+    }
+    if (!resp.ok) {
+      throw new Error(data?.message || `Error ${resp.status}`);
+    }
+    const arr = (Array.isArray(data) ? data : data?.tareas || []).map((t: any) => ({
+      id: t.id || t._id,
+      title: t.titulo || t.descripcion || "Sin titulo",
+      descripcion: t.descripcion,
+      done: false,
+      date: t.createdAt ? new Date(t.createdAt) : new Date(),
+      rolAsignado: t.rolAsignado || t.rol || "usuario",
+      usuarioId: t.usuarioId || t.userId,
+      estado: t.estado,
+      tecnicoId: t.tecnicoId,
+      tecnicoCorreo: t.tecnicoCorreo,
+    }));
+    return arr as PeticionServicio[];
+  }
+
+  async function nuevaSolicitud(opts: {
+    titulo: string;
+    descripcion?: string;
+    usuarioId: string;
+    rolAsignado: Rol;
+    fecha: Date;
+  }) {
+    const resp = await fetch(`${BASE_URL}/tareas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        titulo: opts.titulo.trim(),
+        descripcion: opts.descripcion?.trim() || undefined,
+        usuarioId: opts.usuarioId,
+        rolAsignado: opts.rolAsignado,
+        fecha: opts.fecha,
+      }),
+    });
+
+    const txt = await resp.text();
+    let data: any = {};
+    try {
+      data = txt ? JSON.parse(txt) : {};
+    } catch {
+      data = { message: txt };
+    }
+    if (!resp.ok) {
+      throw new Error(data?.message || `Error ${resp.status}`);
+    }
+    const t = data.tarea || data;
+    return {
+      id: t.id || t._id,
+      titulo: t.titulo || opts.titulo,
+      descripcion: t.descripcion || opts.descripcion,
+      usuarioId: t.usuarioId || opts.usuarioId,
+      rolAsignado: t.rolAsignado || opts.rolAsignado,
+    };
+  }
+
+  async function inicializar() {
+    try {
+      setLoading(true);
+      const sess = await cargarSesion();
+      if (!sess) {
+        Alert.alert("Sesión requerida", "Por favor inicia sesión.", [
+          { text: "Ok", onPress: () => navigation.replace("Inicio") },
+        ]);
+        return;
+      }
+      setUsuario(sess);
+      const lista = await fetchSolicitudes(sess.id);
+      setSolicitudes(lista);
+    } catch (err) {
+      alertaError(err, "No se pudo cargar solicitudes");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     PushNotification.configure({
       onNotification: () => {},
       requestPermissions: Platform.OS === "ios",
     });
-
     PushNotification.createChannel(
       {
         channelId: "task-reminders",
         channelName: "Recordatorio de tareas",
-        channelDescription: "Notificaciones Programadas",
+        channelDescription: "Notificaciones programadas",
         playSound: true,
         importance: 4,
         vibrate: true,
       },
       () => {}
     );
+    inicializar();
+  }, []);
 
-    getData();
-    checkAndUpdateOverdueTask();
+  function scheduleNotif(s: PeticionServicio): string | undefined {
+    if (!s.date) return;
+    const ahora = new Date();
+    if (s.date > ahora) {
+      const nid = Math.floor(Math.random() * 1000000).toString();
+      PushNotification.localNotificationSchedule({
+        id: nid,
+        channelId: "task-reminders",
+        title: "Recordatorio",
+        message: `Hora de: ${s.title}`,
+        date: s.date,
+        allowWhileIdle: true,
+      });
+      return nid;
+    }
+  }
 
-    const sub = AppState.addEventListener("change", handleAppStateChange);
-    return () => sub.remove();
-  });
+  function cancelarNotif(id: string) {
+    PushNotification.cancelLocalNotification(id);
+  }
 
-  const addTask = () => {
-    if (text.trim() === "") {
-      Alert.alert("Falta Información", "Describe el servicio.");
+  function onDateChange(ev: any, d?: Date) {
+    if (Platform.OS !== "ios") setShowDate(false);
+    if (ev?.type === "set" && d) {
+      const nueva = new Date(d);
+      nueva.setHours(fechaSeleccionada.getHours(), fechaSeleccionada.getMinutes());
+      setFechaSeleccionada(nueva);
+      setShowTime(true);
+    }
+  }
+
+  function onTimeChange(ev: any, t?: Date) {
+    if (Platform.OS !== "ios") setShowTime(false);
+    if (ev?.type === "set" && t) {
+      const ahora = new Date();
+      const nueva = new Date(fechaSeleccionada);
+      nueva.setHours(t.getHours());
+      nueva.setMinutes(t.getMinutes());
+      const mismaFecha = fechaSeleccionada.toDateString() === ahora.toDateString();
+      if (mismaFecha && nueva < ahora) {
+        Alert.alert("Hora inválida", "No puedes elegir una hora pasada.");
+        return;
+      }
+      setFechaSeleccionada(nueva);
+    }
+  }
+
+  function agregarSolicitud() {
+    if (!usuario) {
+      Alert.alert("Sesión requerida", "Inicia sesión para solicitar servicio.");
+      navigation.replace("Inicio");
+      return;
+    }
+    if (descripcion.trim() === "") {
+      Alert.alert("Falta información", "Escribe una descripción del servicio.");
       return;
     }
 
-    const taskId = generateTaskId();
-    const baseText = text.trim();
-    const title =
-      selectedService != null
-        ? `${selectedService}: ${baseText}`
-        : baseText;
+    const base = descripcion.trim();
+    const titulo = tipoServicio ? `${tipoServicio}: ${base}` : base;
+    const rolAsignado: Rol = "usuario";
 
-    const newTask: PeticionServicio = {
-      id: taskId,
-      title,
-      done: false,
-      date: selectedDate,
-    };
+    nuevaSolicitud({
+      titulo,
+      descripcion: base,
+      usuarioId: usuario.id,
+      rolAsignado,
+      fecha: fechaSeleccionada,
+    })
+      .then((tarea) => {
+        const nueva: PeticionServicio = {
+          id: tarea.id,
+          title: tarea.titulo,
+          descripcion: tarea.descripcion,
+          done: false,
+          date: fechaSeleccionada,
+          rolAsignado: tarea.rolAsignado || rolAsignado,
+          usuarioId: tarea.usuarioId,
+        };
+        const nid = scheduleNotif(nueva);
+        if (nid) nueva.notificationId = nid;
 
-    const notifId = scheduleNotification(newTask);
-    if (notifId) newTask.notificationId = notifId;
+        const copia = solicitudes.slice();
+        copia.push(nueva);
+        setSolicitudes(copia);
 
-    const updated = [...tasks, newTask];
-    setTasks(updated);
-    storeData(updated);
+        setDescripcion("");
+        setFechaSeleccionada(new Date());
+        setModalOn(false);
+        setTipoServicio(null);
+      })
+      .catch((err) => alertaError(err, "No se pudo crear la solicitud"));
+  }
 
-    setText("");
-    setSelectedDate(new Date());
-    setModalVisible(false);
-    setSelectedService(null);
-  };
-
-  const markDone = (task: PeticionServicio) => {
-    const updated = tasks.map((t) => {
-      if (t.id === task.id) {
+  function toggleDone(item: PeticionServicio) {
+    const nuevoArray = solicitudes.map((t) => {
+      if (t.id === item.id) {
         const u = { ...t, done: !t.done };
 
         if (u.done && u.notificationId) {
-          cancelNotification(u.notificationId);
+          cancelarNotif(u.notificationId);
           u.notificationId = undefined;
         } else if (!u.done) {
-          const newId = scheduleNotification(u);
-          if (newId) u.notificationId = newId;
+          const nid = scheduleNotif(u);
+          if (nid) u.notificationId = nid;
         }
         return u;
       }
       return t;
     });
+    setSolicitudes(nuevoArray);
+  }
 
-    setTasks(updated);
-    storeData(updated);
-  };
-
-  const deleteFunction = (task: PeticionServicio) => {
-    Alert.alert("Confirmación", "¿Eliminar tarea?", [
+  function eliminarItem(item: PeticionServicio) {
+    Alert.alert("Confirmar", "¿Eliminar solicitud?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Eliminar",
         style: "destructive",
         onPress: () => {
-          if (task.notificationId) cancelNotification(task.notificationId);
-          const filtered = tasks.filter((t) => t.id !== task.id);
-          setTasks(filtered);
-          storeData(filtered);
+          if (item.notificationId) cancelarNotif(item.notificationId);
+          const filtrado = solicitudes.filter((t) => t.id !== item.id);
+          setSolicitudes(filtrado);
         },
       },
     ]);
-  };
+  }
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
+  const solicitudesOrdenadas = useMemo(() => {
+    return [...solicitudes].sort((a, b) => {
+      const da = a.date ? +a.date : 0;
+      const db = b.date ? +b.date : 0;
+      return da - db;
     });
-  };
+  }, [solicitudes]);
 
-  const openServiceModal = (service: string) => {
-    setSelectedService(service);
-    setText("");
-    setSelectedDate(new Date());
-    setModalVisible(true);
-  };
+  async function cerrarSesion() {
+    await AsyncStorage.removeItem(STORAGE_KEY);
+    navigation.replace("Inicio");
+  }
+
+  function renderAvatar() {
+    const uri = usuario?.foto;
+    if (uri) {
+      return (
+        <Image
+          source={{ uri }}
+          style={estilos.avatar}
+        />
+      );
+    }
+    const inicial =
+      usuario?.usuario?.[0]?.toUpperCase() ||
+      usuario?.correo?.[0]?.toUpperCase() ||
+      "U";
+    return (
+      <View style={estilos.avatarFallback}>
+        <Text style={estilos.avatarInitial}>{inicial}</Text>
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={[estilos.container, estilos.centered]}>
+        <ActivityIndicator size="large" color="#1ABC9C" />
+      </View>
+    );
+  }
 
   return (
-    <View style={Estilos.container}>
+    <View style={estilos.container}>
+      <View style={estilos.rowBetween}>
+        <View style={estilos.rowCenter}>
+          <TouchableOpacity onPress={() => setShowMenu((v) => !v)}>{renderAvatar()}</TouchableOpacity>
+          <Text style={[formularios.text, estilos.userLabel]} numberOfLines={1}>
+            {usuario?.usuario || usuario?.correo || "Usuario"}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Inicio")}>
+          <Text style={formularios.text}>{"<- Volver"}</Text>
+        </TouchableOpacity>
+      </View>
+      {showMenu ? (
+        <View style={estilos.menuContainer}>
+          <TouchableOpacity onPress={() => { setShowMenu(false); navigation.navigate("Perfil"); }}>
+            <Text style={formularios.text}>Perfil</Text>
+          </TouchableOpacity>
+          {usuario?.esAdmin ? (
+            <TouchableOpacity onPress={() => { setShowMenu(false); navigation.navigate("Admin"); }}>
+              <Text style={formularios.text}>Admin</Text>
+            </TouchableOpacity>
+          ) : null}
+          {usuario?.esTecnico ? (
+            <TouchableOpacity onPress={() => { setShowMenu(false); navigation.navigate("SolicitudesTecnico"); }}>
+              <Text style={formularios.text}>Solicitudes tecnico</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={() => { setShowMenu(false); cerrarSesion(); }}>
+            <Text style={formularios.text}>Cerrar sesion</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
-    <TouchableOpacity onPress={() => navigation.navigate('Inicio')}>
-        <Text style={formularios.text}>←</Text>
-    </TouchableOpacity>
+      <Text style={estilos.title}>Solicitar Servicio</Text>
 
-      <Text style={Estilos.title}>Solicitar Servicio</Text>
-
-      <View style={Estilos.inputcontainer}>
-        <View style={Estilos.fila}>
-          <TouchableOpacity
-            style={Estilos.boton}
-            onPress={() => openServiceModal("Fontaneria")}
-          >
-            <Text style={Estilos.textB}>Fontaneria</Text>
+      <View style={estilos.inputcontainer}>
+        <View style={estilos.fila}>
+          <TouchableOpacity style={estilos.boton} onPress={() => { setTipoServicio("Fontaneria"); setModalOn(true); }}>
+            <Text style={estilos.textB}>Fontanería</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={Estilos.boton}
-            onPress={() => openServiceModal("Electricidad")}
-          >
-            <Text style={Estilos.textB}>Electricidad</Text>
+          <TouchableOpacity style={estilos.boton} onPress={() => { setTipoServicio("Electricidad"); setModalOn(true); }}>
+            <Text style={estilos.textB}>Electricidad</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={Estilos.fila}>
-          <TouchableOpacity
-            style={Estilos.boton}
-            onPress={() => openServiceModal("Carpinteria")}
-          >
-            <Text style={Estilos.textB}>Carpinteria</Text>
+        <View style={estilos.fila}>
+          <TouchableOpacity style={estilos.boton} onPress={() => { setTipoServicio("Carpinteria"); setModalOn(true); }}>
+            <Text style={estilos.textB}>Carpintería</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={Estilos.boton}
-            onPress={() => openServiceModal("Albañileria")}
-          >
-            <Text style={Estilos.textB}>Albañileria</Text>
+          <TouchableOpacity style={estilos.boton} onPress={() => { setTipoServicio("Albanileria"); setModalOn(true); }}>
+            <Text style={estilos.textB}>Albañilería</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={Estilos.fila}>
-          <TouchableOpacity
-            style={Estilos.boton}
-            onPress={() => openServiceModal("Mecanica")}
-          >
-            <Text style={Estilos.textB}>Mecanica</Text>
+        <View style={estilos.fila}>
+          <TouchableOpacity style={estilos.boton} onPress={() => { setTipoServicio("Mecanica"); setModalOn(true); }}>
+            <Text style={estilos.textB}>Mecánica</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={Estilos.boton}
-            onPress={() => openServiceModal("General")}
-          >
-            <Text style={Estilos.textB}>General</Text>
+          <TouchableOpacity style={estilos.boton} onPress={() => { setTipoServicio("General"); setModalOn(true); }}>
+            <Text style={estilos.textB}>General</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <Modal
-        transparent
-        animationType="slide"
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={Estilos.modal}>
-
-          <View style={Estilos.mc}>
-
-            <Text style={Estilos.sub}>
-              {selectedService
-                ? `Solicitud de ${selectedService}`
-                : "Nueva solicitud"}
+      <Modal transparent animationType="slide" visible={modalOn} onRequestClose={() => setModalOn(false)}>
+        <View style={estilos.modal}>
+          <View style={estilos.mc}>
+            <Text style={estilos.sub}>
+              {tipoServicio ? `Solicitud: ${tipoServicio}` : "Nueva solicitud"}
             </Text>
 
             <TextInput
-              placeholder="Escribe la descripción del trabajo"
-              style={Estilos.inputmodal}
-              value={text}
-              onChangeText={setText}
+              placeholder="Describe el trabajo"
+              style={estilos.inputmodal}
+              value={descripcion}
+              onChangeText={setDescripcion}
             />
 
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={Estilos.calendarioBoton || Estilos.boton}
-            >
-              <Text style={Estilos.fecha}>{formatDate(selectedDate)}</Text>
+            <TouchableOpacity onPress={() => setShowDate(true)} style={estilos.calendarioBoton || estilos.boton}>
+              <Text style={estilos.fecha}>{fechaSeleccionada.toLocaleDateString("es-ES")}</Text>
             </TouchableOpacity>
 
-            <View style={Estilos.botonesmo}>
+            <TouchableOpacity onPress={() => setShowTime(true)} style={estilos.calendarioBoton || estilos.boton}>
+              <Text style={estilos.fecha}>{fechaSeleccionada.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity style={Estilos.boton} onPress={addTask}>
-                <Text style={Estilos.textB}>Solicitar</Text>
+            <View style={estilos.botonesmo}>
+              <TouchableOpacity style={estilos.boton} onPress={agregarSolicitud}>
+                <Text style={estilos.textB}>Solicitar</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[Estilos.boton]}
-                onPress={() => setModalVisible(false)}
-              >
-              <Text style={Estilos.textB}>Cancelar</Text>
-            </TouchableOpacity>
-
+              <TouchableOpacity style={estilos.boton} onPress={() => setModalOn(false)}>
+                <Text style={estilos.textB}>Cancelar</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {showDatePicker && (
+      {showDate && (
         <DateTimePicker
-          value={selectedDate}
+          value={fechaSeleccionada}
           mode="date"
           onChange={onDateChange}
           minimumDate={new Date()}
         />
       )}
-
-      {showTimePicker && (
+      {showTime && (
         <DateTimePicker
-          value={selectedDate}
+          value={fechaSeleccionada}
           mode="time"
           onChange={onTimeChange}
-          is24Hour={false}    
+          is24Hour={false}
           display="spinner"
         />
       )}
 
-      <View style={Estilos.listaContainer}>
-        <Text style={Estilos.sub}>Mis Solicitudes ({tasks.length})</Text>
-
+      <View style={estilos.listaContainer}>
+        <Text style={estilos.sub}>Mis solicitudes ({solicitudes.length})</Text>
         <FlatList
+          data={solicitudesOrdenadas}
+          keyExtractor={(item, idx) => item.id + "-" + idx}
           renderItem={({ item }) => (
             <RenderItem
-              item={item}
-              markDone={() => markDone(item)}
-              deleteFuntion={() => deleteFunction(item)}
+              item={item as any}
+              onPress={() => toggleDone(item)}
+              onDelete={() => eliminarItem(item)}
             />
           )}
-          data={tasks}
-          keyExtractor={(item, index) => `${item.title}-${index}`}
-      
         />
       </View>
     </View>

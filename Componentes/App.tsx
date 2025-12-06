@@ -4,6 +4,8 @@ import Inicio from './cLogin';
 import Registro from "./cRegistro";
 import Tablero from "./Tablero";
 import SolicitudesTecnico from "./SolicitudesTecnico";
+import Perfil from "./Perfil";
+import Admin from "./Admin";
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from "@react-navigation/stack";
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -16,6 +18,8 @@ export type RootList={
   Registro:undefined
   Tablero:undefined
   SolicitudesTecnico:undefined
+  Perfil:undefined
+  Admin:undefined
 }
 
 const Ruta=createStackNavigator<RootList>();
@@ -48,6 +52,16 @@ export default function App(){
       name="SolicitudesTecnico"
       component={SolicitudesTecnico}
       options={{title:'Solicitudes'}}
+      />
+      <Ruta.Screen
+      name="Perfil"
+      component={Perfil}
+      options={{title:'Perfil'}}
+      />
+      <Ruta.Screen
+      name="Admin"
+      component={Admin}
+      options={{title:'Admin'}}
       />
       </Ruta.Navigator>
     </NavigationContainer>
