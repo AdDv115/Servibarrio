@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import formularios from "./Estilos/Formularios";
 import { Picker } from "@react-native-picker/picker";
 import { Registro } from "../Page/Registro";
@@ -24,13 +24,7 @@ export default function CRegistro() {
   } = Registro();
 
   return (
-    <ImageBackground
-      source={{
-        uri: "http://images.pexels.com/photos/691668/pexels-photo-691668.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      }}
-      resizeMode="cover"
-      style={formularios.bg}
-    >
+    <View style={formularios.bg}>
       <View style={formularios.container}>
         <TouchableOpacity onPress={() => navigation.navigate("Inicio")}>
           <Text style={formularios.text}>{"<-"}</Text>
@@ -48,6 +42,7 @@ export default function CRegistro() {
           onChangeText={setCorreo}
           keyboardType="email-address"
           autoCapitalize="none"
+          placeholderTextColor="#9c9c9c"
         />
 
         <Text style={formularios.text}>Telefono (opcional)</Text>
@@ -56,6 +51,7 @@ export default function CRegistro() {
           value={Telefono}
           onChangeText={setTelefono}
           keyboardType="phone-pad"
+          placeholderTextColor="#9c9c9c"
         />
 
         <Text style={formularios.text}>Contrasena</Text>
@@ -64,6 +60,7 @@ export default function CRegistro() {
           value={Contra}
           onChangeText={setContra}
           secureTextEntry
+          placeholderTextColor="#9c9c9c"
         />
 
         <Picker
@@ -79,6 +76,6 @@ export default function CRegistro() {
           <Text style={formularios.textB}>Registrarme</Text>
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </View>
   );
 }

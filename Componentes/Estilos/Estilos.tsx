@@ -6,13 +6,13 @@ const Estilos = StyleSheet.create({
         flex: 1,
         paddingTop: 50,
         paddingHorizontal: 15,
-        backgroundColor: '#F5F7FA',
+        backgroundColor: '#0f0f10',
     },
 
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#2C3E50',
+        color: '#4cc9f0',
         marginTop:70,
         marginBottom: 25,
         textAlign: 'center',
@@ -22,15 +22,15 @@ const Estilos = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         marginBottom: 10,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
+        backgroundColor: '#18181c',
+        borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: '#2a2a32',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 6,
     },
 
     fila: {
@@ -45,7 +45,7 @@ const Estilos = StyleSheet.create({
         height: 50,
         paddingHorizontal: 15,
         fontSize: 15,
-        color: '#333333',
+        color: '#d1d1d1',
     },
 
     boton: {
@@ -53,13 +53,13 @@ const Estilos = StyleSheet.create({
         width: 140,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#1ABC9C',
-        borderRadius: 10,
+        backgroundColor: '#4cc9f0',
+        borderRadius: 12,
         marginLeft: 0,
     },
     
     textB: {
-        color: 'white',
+        color: '#0d0d0e',
         fontWeight: 'bold',
         fontSize: 15
     },
@@ -71,10 +71,10 @@ const Estilos = StyleSheet.create({
     },
 
     fecha: {
-        backgroundColor:'#2980B9',
+        backgroundColor:'#1f1f25',
         fontSize: 16,
-        color: 'white',
-        borderRadius: 5,
+        color: '#d1d1d1',
+        borderRadius: 8,
         padding: 10,
         marginTop: 5,
         marginBottom: 15,
@@ -93,11 +93,11 @@ const Estilos = StyleSheet.create({
     sub: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#34495E',
+        color: '#e0e0e0',
         marginBottom: 10,
         marginTop: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#ECF0F1',
+        borderBottomColor: 'rgba(76,201,240,0.3)',
         paddingBottom: 5,
     },
 
@@ -107,10 +107,10 @@ const Estilos = StyleSheet.create({
         alignItems: 'center',
         padding: 15,
         marginBottom: 10,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
+        backgroundColor: '#18181c',
+        borderRadius: 12,
         borderLeftWidth: 6,
-        borderLeftColor: '#3498DB',
+        borderLeftColor: '#4895ef',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.15,
@@ -119,7 +119,7 @@ const Estilos = StyleSheet.create({
     },
     text: {
         fontSize: 16,
-        color: '#2C3E50',
+        color: '#d1d1d1',
         fontWeight: '500',
         marginBottom: 2,
     },
@@ -130,11 +130,11 @@ const Estilos = StyleSheet.create({
     },
     dateText: {
         fontSize: 13,
-        color: '#7F8C8D',
+        color: '#9c9c9c',
         marginTop: 4,
     },
     removeBoton: {
-        backgroundColor: '#E74C3C',
+        backgroundColor: '#f72585',
         padding: 8,
         borderRadius: 5,
         marginLeft: 10,
@@ -146,7 +146,7 @@ const Estilos = StyleSheet.create({
     },
     statusPending: {
         fontSize: 12,
-        color: '#F39C12',
+        color: '#4cc9f0',
         fontWeight: 'bold',
         marginTop: 5,
     },
@@ -165,15 +165,22 @@ const Estilos = StyleSheet.create({
     },
     mc: {
         width: "90%",
-        backgroundColor: "#FFFFFF",
-        borderRadius: 10,
-        padding: 30,
-        flexDirection: "column"
+        backgroundColor: "#18181c",
+        borderRadius: 12,
+        padding: 24,
+        flexDirection: "column",
+        borderWidth: 1,
+        borderColor: "#2a2a32",
     },
     inputmodal: {
         borderWidth: 1,
-        borderRadius: 15,
-        margin:10,    
+        borderRadius: 10,
+        margin: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        backgroundColor: "#1b1b20",
+        borderColor: "#2b2b31",
+        color: "#d1d1d1",
     },
     botonesmo: {
         gap:20,
@@ -218,7 +225,7 @@ const Estilos = StyleSheet.create({
         position: "absolute",
         top: 50,
         left: 10,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#1b1b1f",
         padding: 12,
         borderRadius: 8,
         elevation: 4,
@@ -251,6 +258,16 @@ const Estilos = StyleSheet.create({
     },
     perfilContainer: {
         paddingTop: 60,
+    },
+    topAction: {
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        marginRight: 8,
+    },
+    topActionText: {
+        color: "#d1d1d1",
+        fontSize: 13,
+        fontWeight: "600",
     },
 });
 

@@ -87,7 +87,6 @@ export function useAdminUsuarios() {
           )
         );
 
-        // Si el admin editó su propio usuario, refrescar sesión
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
           const sess = JSON.parse(raw);

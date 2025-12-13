@@ -15,6 +15,7 @@ interface PeticionServicio {
   descripcion?: string;
   estado?: string;
   tecnicoCorreo?: string;
+  direccion?: string;
 }
 
 interface ItemProps {
@@ -47,12 +48,18 @@ export default function RenderItem({ item, onPress, onDelete }: ItemProps) {
         {item.descripcion ? (
           <Text style={estilos.text}>{item.descripcion}</Text>
         ) : null}
+        {item.direccion ? (
+          <Text style={estilos.text}>{item.direccion}</Text>
+        ) : null}
         <Text style={estilos.dateText}>{formatDate(item.date)}</Text>
         <Text style={statusStyle}>
           {item.estado ? item.estado : item.done ? "Completado" : "Pendiente"}
         </Text>
         {item.tecnicoCorreo ? (
           <Text style={estilos.dateText}>Tecnico: {item.tecnicoCorreo}</Text>
+        ) : null}
+        {item.tecnicoId ? (
+          <Text style={estilos.dateText}>ID: {item.tecnicoId}</Text>
         ) : null}
       </TouchableOpacity>
 

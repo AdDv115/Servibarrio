@@ -32,6 +32,7 @@ interface PeticionServicio {
   estado?: string;
   tecnicoId?: string;
   tecnicoCorreo?: string;
+  direccion?: string;
 }
 
 interface UserSession {
@@ -59,6 +60,7 @@ export default function PeticionesServicioScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [usuario, setUsuario] = useState<UserSession | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [direccion, setDireccion] = useState("");
 
   function alertaError(err: unknown, titulo = "Error") {
     const mensaje = err instanceof Error ? err.message : "Algo salio mal con la peticion.";
@@ -98,6 +100,7 @@ export default function PeticionesServicioScreen({ navigation }: any) {
       estado: t.estado,
       tecnicoId: t.tecnicoId,
       tecnicoCorreo: t.tecnicoCorreo,
+      direccion: t.direccion || t.direcciones,
     }));
     return arr as PeticionServicio[];
   }
@@ -108,6 +111,7 @@ export default function PeticionesServicioScreen({ navigation }: any) {
     usuarioId: string;
     rolAsignado: Rol;
     fecha: Date;
+    direccion?: string;
   }) {
     const resp = await fetch(`${BASE_URL}/tareas`, {
       method: "POST",
@@ -118,6 +122,7 @@ export default function PeticionesServicioScreen({ navigation }: any) {
         usuarioId: opts.usuarioId,
         rolAsignado: opts.rolAsignado,
         fecha: opts.fecha,
+        direccion: opts.direccion?.trim(),
       }),
     });
 
@@ -149,6 +154,10 @@ export default function PeticionesServicioScreen({ navigation }: any) {
         Alert.alert("Sesión requerida", "Por favor inicia sesión.", [
           { text: "Ok", onPress: () => navigation.replace("Inicio") },
         ]);
+        return;
+      }
+      if (sess.esAdmin) {
+        navigation.replace("Admin");
         return;
       }
       setUsuario(sess);
@@ -227,14 +236,15 @@ export default function PeticionesServicioScreen({ navigation }: any) {
     }
   }
 
+
   function agregarSolicitud() {
     if (!usuario) {
-      Alert.alert("Sesión requerida", "Inicia sesión para solicitar servicio.");
+      Alert.alert("Sesi?n requerida", "Inicia sesi?n para solicitar servicio.");
       navigation.replace("Inicio");
       return;
     }
-    if (descripcion.trim() === "") {
-      Alert.alert("Falta información", "Escribe una descripción del servicio.");
+    if (descripcion.trim() === "" || direccion.trim() === "") {
+      Alert.alert("Falta informaci?n", "Describe el servicio y agrega la direcci?n.");
       return;
     }
 
@@ -248,6 +258,7 @@ export default function PeticionesServicioScreen({ navigation }: any) {
       usuarioId: usuario.id,
       rolAsignado,
       fecha: fechaSeleccionada,
+      direccion: direccion.trim(),
     })
       .then((tarea) => {
         const nueva: PeticionServicio = {
@@ -258,6 +269,7 @@ export default function PeticionesServicioScreen({ navigation }: any) {
           date: fechaSeleccionada,
           rolAsignado: tarea.rolAsignado || rolAsignado,
           usuarioId: tarea.usuarioId,
+          direccion: direccion.trim(),
         };
         const nid = scheduleNotif(nueva);
         if (nid) nueva.notificationId = nid;
@@ -267,12 +279,14 @@ export default function PeticionesServicioScreen({ navigation }: any) {
         setSolicitudes(copia);
 
         setDescripcion("");
+        setDireccion("");
         setFechaSeleccionada(new Date());
         setModalOn(false);
         setTipoServicio(null);
       })
       .catch((err) => alertaError(err, "No se pudo crear la solicitud"));
   }
+
 
   function toggleDone(item: PeticionServicio) {
     const nuevoArray = solicitudes.map((t) => {
@@ -294,20 +308,30 @@ export default function PeticionesServicioScreen({ navigation }: any) {
   }
 
   function eliminarItem(item: PeticionServicio) {
-    Alert.alert("Confirmar", "¿Eliminar solicitud?", [
+    Alert.alert("Confirmar", "Eliminar solicitud?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Eliminar",
         style: "destructive",
-        onPress: () => {
+        onPress: async () => {
           if (item.notificationId) cancelarNotif(item.notificationId);
-          const filtrado = solicitudes.filter((t) => t.id !== item.id);
-          setSolicitudes(filtrado);
+          try {
+            const resp = await fetch(`${BASE_URL}/tareas/${item.id}`, { method: "DELETE" });
+            if (!resp.ok) {
+              const txt = await resp.text();
+              throw new Error(txt || `Error ${resp.status}`);
+            }
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : "No se pudo eliminar en servidor.";
+            Alert.alert("Aviso", msg);
+          } finally {
+            const filtrado = solicitudes.filter((t) => t.id !== item.id);
+            setSolicitudes(filtrado);
+          }
         },
       },
     ]);
   }
-
   const solicitudesOrdenadas = useMemo(() => {
     return [...solicitudes].sort((a, b) => {
       const da = a.date ? +a.date : 0;
@@ -359,8 +383,8 @@ export default function PeticionesServicioScreen({ navigation }: any) {
             {usuario?.usuario || usuario?.correo || "Usuario"}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("Inicio")}>
-          <Text style={formularios.text}>{"<- Volver"}</Text>
+        <TouchableOpacity onPress={cerrarSesion}>
+          <Text style={formularios.text}>Cerrar sesion</Text>
         </TouchableOpacity>
       </View>
       {showMenu ? (
@@ -421,12 +445,22 @@ export default function PeticionesServicioScreen({ navigation }: any) {
             <Text style={estilos.sub}>
               {tipoServicio ? `Solicitud: ${tipoServicio}` : "Nueva solicitud"}
             </Text>
+            <Text style={estilos.dateText}>
+              Tecnico:{" "}
+              {usuario?.esTecnico
+                ? usuario?.usuario || usuario?.correo || "Tecnico"
+                : "Por asignar"}
+            </Text>
+            {usuario?.esTecnico ? (
+              <Text style={estilos.dateText}>{usuario?.correo}</Text>
+            ) : null}
 
             <TextInput
               placeholder="Describe el trabajo"
               style={estilos.inputmodal}
               value={descripcion}
               onChangeText={setDescripcion}
+              placeholderTextColor="#9c9c9c"
             />
 
             <TouchableOpacity onPress={() => setShowDate(true)} style={estilos.calendarioBoton || estilos.boton}>
@@ -436,6 +470,15 @@ export default function PeticionesServicioScreen({ navigation }: any) {
             <TouchableOpacity onPress={() => setShowTime(true)} style={estilos.calendarioBoton || estilos.boton}>
               <Text style={estilos.fecha}>{fechaSeleccionada.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</Text>
             </TouchableOpacity>
+
+            <Text style={formularios.text}>Dirección</Text>
+            <TextInput
+              placeholder="Dirección del servicio"
+              style={estilos.inputmodal}
+              value={direccion}
+              onChangeText={setDireccion}
+              placeholderTextColor="#9c9c9c"
+            />
 
             <View style={estilos.botonesmo}>
               <TouchableOpacity style={estilos.boton} onPress={agregarSolicitud}>
