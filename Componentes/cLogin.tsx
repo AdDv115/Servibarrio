@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import formularios from "./Estilos/Formularios";
 import { Inicio } from "../Page/Inicio";
 
@@ -7,13 +7,7 @@ export default function CLogin() {
   const { Correo, setCorreo, Contra, setContra, handleLogin, navigation } = Inicio();
 
   return (
-    <ImageBackground
-      source={{
-        uri: "https://images.pexels.com/photos/691668/pexels-photo-691668.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      }}
-      resizeMode="cover"
-      style={formularios.bg}
-    >
+    <View style={formularios.bg}>
       <View style={formularios.container}>
         <Text style={formularios.title}>INICIO DE SESION</Text>
 
@@ -23,6 +17,7 @@ export default function CLogin() {
           placeholder="Correo"
           keyboardType="email-address"
           autoCapitalize="none"
+          placeholderTextColor="#9c9c9c"
           value={Correo}
           onChangeText={setCorreo}
         />
@@ -31,6 +26,7 @@ export default function CLogin() {
         <TextInput
           style={formularios.textinput}
           placeholder="Contrasena"
+          placeholderTextColor="#9c9c9c"
           value={Contra}
           onChangeText={setContra}
           secureTextEntry
@@ -44,6 +40,6 @@ export default function CLogin() {
           <Text style={formularios.text}>No tienes cuenta? Registrate aqui</Text>
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </View>
   );
 }

@@ -6,15 +6,15 @@ const EstilosTecnico = StyleSheet.create({
     alignItems: "center",
     padding: 15,
     marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
+    backgroundColor: "#18181c",
+    borderRadius: 12,
     borderLeftWidth: 6,
-    borderLeftColor: "#1ABC9C",
+    borderLeftColor: "#4cc9f0",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.18,
+    shadowRadius: 5,
+    elevation: 3,
     gap: 10,
   },
   actionButton: {
@@ -25,13 +25,13 @@ const EstilosTecnico = StyleSheet.create({
     alignItems: "center",
   },
   buttonPrimary: {
-    backgroundColor: "#1ABC9C",
+    backgroundColor: "#4cc9f0",
   },
   buttonDisabled: {
     backgroundColor: "#BDC3C7",
   },
   actionText: {
-    color: "#FFFFFF",
+    color: "#0d0d0e",
     fontWeight: "bold",
   },
   emptyState: {

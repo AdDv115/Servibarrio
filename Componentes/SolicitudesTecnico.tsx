@@ -30,13 +30,7 @@ const formatDate = (date: Date | string) => {
   });
 };
 
-const SolicitudItem = ({
-  item,
-  onAccept,
-}: {
-  item: SolicitudTecnico;
-  onAccept: (id: string) => Promise<void> | void;
-}) => {
+const SolicitudItem = ({ item }: { item: SolicitudTecnico }) => {
   const statusStyle = item.accepted ? Estilos.statusDone : Estilos.statusPending;
   const statusLabel = item.estado
     ? item.estado.charAt(0).toUpperCase() + item.estado.slice(1)
@@ -54,21 +48,6 @@ const SolicitudItem = ({
           <Text style={Estilos.dateText}>Tecnico: {item.tecnicoCorreo}</Text>
         ) : null}
       </View>
-
-      <TouchableOpacity
-        style={[
-          EstilosSolicitudes.actionButton,
-          item.accepted
-            ? EstilosSolicitudes.buttonDisabled
-            : EstilosSolicitudes.buttonPrimary,
-        ]}
-        disabled={item.accepted}
-        onPress={() => onAccept(item.id)}
-      >
-        <Text style={EstilosSolicitudes.actionText}>
-          {item.accepted ? "Tomada" : "Aceptar"}
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -156,9 +135,14 @@ export default function SolicitudesTecnico() {
     <View style={Estilos.container}>
       <View style={Estilos.rowBetween}>
         <TouchableOpacity onPress={() => setShowMenu((v) => !v)}>{renderAvatar()}</TouchableOpacity>
-        <TouchableOpacity onPress={handleBack}>
-          <Text style={Estilos.sub}>{"<- Volver"}</Text>
-        </TouchableOpacity>
+        <View style={Estilos.rowCenter}>
+          <TouchableOpacity onPress={onRefresh} style={Estilos.topAction}>
+            <Text style={Estilos.topActionText}>Recargar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={cerrarSesion}>
+            <Text style={Estilos.sub}>Cerrar sesion</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       {showMenu ? (
         <View style={Estilos.menuContainer}>
@@ -187,9 +171,7 @@ export default function SolicitudesTecnico() {
         <FlatList
           data={pendientes}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SolicitudItem item={item} onAccept={aceptarSolicitud} />
-          )}
+          renderItem={({ item }) => <SolicitudItem item={item} />}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }

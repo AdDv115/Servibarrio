@@ -3,47 +3,51 @@ import { StyleSheet, Dimensions } from "react-native";
 const formularios = StyleSheet.create({
   bg: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#0f0f10',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   container: {
-    padding: 20,
-    backgroundColor:'white',
-    borderRadius: 15,
+    padding: 24,
+    backgroundColor: '#18181c',
+    borderRadius: 18,
     width: '90%',
-    elevation: 5, 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 3,
-    gap:10
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    gap: 12,
   },
 
   title: {
     fontSize: 20,
-    color: '#000000ff',
-    marginBottom: 15,
-    fontWeight:'bold',
-    textAlign:'center'
+    color: '#4cc9f0',
+    marginBottom: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   text: {
     fontSize: 16,
-    color: '#6f6f6f',
+    color: '#d1d1d1',
     marginVertical: 5,
-    fontWeight:'bold',
-    textAlign:'left'
+    fontWeight: 'bold',
+    textAlign: 'left',
   },
 
   textinput: {
-    borderColor: '#6f6f6f',
-    backgroundColor: 'white',
+    borderColor: '#2b2b31',
+    backgroundColor: '#1b1b20',
     borderWidth: 1,
-    borderRadius: 15,
+    borderRadius: 10,
     width: '100%',
     marginVertical: 5,
-    alignItems:'center'
+    alignItems: 'center',
+    color: '#e8e8e8',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
   },
 
   inputcontainer: {
@@ -54,18 +58,22 @@ const formularios = StyleSheet.create({
   },
 
   boton: {
-    backgroundColor: '#1ABC9C',
+    backgroundColor: '#4cc9f0',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 15,
+    borderRadius: 14,
     width: '100%',
-    paddingVertical: 10,
-    marginTop: 15,
-    
+    paddingVertical: 12,
+    marginTop: 18,
+    shadowColor: '#4895ef',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
   },
   textB: {
-    color:'white',
-    fontWeight:'bold'
+    color: '#0d0d0e',
+    fontWeight: 'bold',
   },
 
   itemcontainer: {
@@ -102,9 +110,10 @@ const formularios = StyleSheet.create({
   },
 
   picker: {
-    backgroundColor: 'white',
+    backgroundColor: '#1b1b20',
     borderRadius: 15,
-    width: '55%'
+    width: '55%',
+    color:'#4cc9f0'
   },
   
 });

@@ -133,7 +133,10 @@ export function useSolicitudesTecnico() {
         setSolicitudes([]);
       } else {
         const lista = await fetchSolicitudesTecnico();
-        setSolicitudes(lista);
+        const propias = lista.filter(
+          (s) => s.tecnicoId === sess.id || s.tecnicoCorreo === sess.correo
+        );
+        setSolicitudes(propias);
       }
     } catch {
       setSolicitudes([]);
